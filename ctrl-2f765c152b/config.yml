@@ -1,0 +1,291 @@
+# Editor settings (Sveltia CMS). Edits are saved as files in content/ of the private source repository,
+# then the Publish workflow rebuilds the public site.
+backend:
+  name: github
+  repo: CE5ald/dhakirat-watan-src
+  branch: main
+
+media_folder: content/images
+public_folder: /content/images
+site_url: https://ce5ald.github.io/dhakirat-watan/
+
+collections:
+  - name: items
+    label: الحكايات والصور والتسجيلات
+    label_singular: حكاية أو صورة أو تسجيل
+    folder: content/items
+    extension: json
+    format: json
+    create: true
+    delete: true
+    slug: "item-{{uuid_shorter}}"
+    identifier_field: title
+    summary: "{{title}}"
+    fields:
+      - { name: title, label: العنوان, widget: string }
+      - name: type
+        label: النوع
+        widget: select
+        default: STORY
+        options:
+          - { label: حكاية, value: STORY }
+          - { label: صورة, value: PHOTO }
+          - { label: فيديو, value: VIDEO }
+          - { label: تسجيل صوتي, value: AUDIO }
+          - { label: ملف PDF, value: DOCUMENT }
+      - { name: section, label: القسم, widget: relation, collection: sections, value_field: "{{slug}}", search_fields: [title], display_fields: [title] }
+      - { name: summary, label: ملخص قصير (سطران), widget: text }
+      - { name: body, label: "النص (افصل الفقرات بسطر فارغ؛ ## عنوان فرعي؛ - قائمة؛ **عريض**)", widget: text, required: false }
+      - { name: transcript, label: تفريغ نصي للصوت أو الفيديو (مطلوب لهما), widget: text, required: false }
+      - { name: kidsSafe, label: مناسبة للأطفال, widget: boolean, default: false }
+      - { name: kidsTitle, label: عنوان مبسّط للأطفال, widget: string, required: false }
+      - { name: kidsBody, label: نص مبسّط للأطفال (جمل قصيرة), widget: text, required: false }
+      - name: verification
+        label: درجة التوثيق
+        widget: select
+        default: DOCUMENTED
+        options:
+          - { label: رواية شفهية, value: ORAL }
+          - { label: موثّقة بمصدر, value: DOCUMENTED }
+          - { label: متحقَّق منها, value: VERIFIED }
+      - { name: periodLabel, label: الفترة (وصف حر), widget: string, required: false }
+      - { name: yearFrom, label: من سنة, widget: number, value_type: int, required: false }
+      - { name: yearTo, label: إلى سنة, widget: number, value_type: int, required: false }
+      - { name: place, label: المكان, widget: relation, collection: places, value_field: "{{slug}}", search_fields: [name], display_fields: [name], required: false }
+      - { name: narrator, label: الراوي أو الحرفي, widget: relation, collection: narrators, value_field: "{{slug}}", search_fields: [name], display_fields: [name], required: false }
+      - { name: tags, label: الوسوم, widget: relation, collection: tags, value_field: "{{slug}}", search_fields: [name], display_fields: [name], multiple: true, required: false }
+      - { name: glossary, label: كلمات من القاموس في المادة, widget: relation, collection: glossary, value_field: "{{slug}}", search_fields: [term], display_fields: [term], multiple: true, required: false }
+      - { name: featured, label: مختارة في الرئيسية, widget: boolean, default: false }
+      - { name: source, label: المصدر (اسم الشخص أو رابط), widget: string, required: false }
+      - { name: license, label: إذن الاستخدام, widget: string, required: false }
+      - { name: externalVideoUrl, label: رابط فيديو (YouTube أو Vimeo), widget: string, required: false }
+      - name: art
+        label: الرسمة عند عدم وجود صورة
+        widget: select
+        default: souq
+        options:
+          - { label: سفينة وبحر, value: dhow }
+          - { label: سوق وأزقة, value: souq }
+          - { label: نسيج السدو, value: sadu }
+          - { label: بيت وبرج هواء, value: windtower }
+          - { label: قلعة, value: fort }
+          - { label: محارة ولؤلؤة, value: pearl }
+          - { label: صقر, value: falcon }
+          - { label: عرضة, value: arda }
+          - { label: مخيم وصحراء, value: camp }
+          - { label: مجلس ودلّة, value: majlis }
+      - name: image
+        label: الصورة
+        widget: object
+        required: false
+        fields:
+          - { name: src, label: ملف الصورة, widget: image, required: false }
+          - { name: alt, label: وصف الصورة لقارئ الشاشة (مطلوب), widget: string, required: false }
+          - { name: credit, label: المصوّر والرخصة, widget: string, required: false }
+          - { name: page, label: رابط صفحة الصورة الأصلية, widget: string, required: false }
+          - { name: focalX, label: نقطة التركيز أفقيًا (0 إلى 100), widget: number, value_type: int, min: 0, max: 100, default: 50, required: false }
+          - { name: focalY, label: نقطة التركيز رأسيًا (0 إلى 100), widget: number, value_type: int, min: 0, max: 100, default: 50, required: false }
+
+  - name: places
+    label: الأماكن على الخريطة
+    label_singular: مكان
+    folder: content/places
+    extension: json
+    format: json
+    create: true
+    delete: true
+    slug: "place-{{uuid_shorter}}"
+    identifier_field: name
+    summary: "{{name}}"
+    fields:
+      - { name: name, label: الاسم, widget: string }
+      - { name: description, label: الوصف, widget: text, required: false }
+      - { name: lat, label: خط العرض (مثال 25.2874), widget: number, value_type: float }
+      - { name: lng, label: خط الطول (مثال 51.5332), widget: number, value_type: float }
+      - { name: hideFromMap, label: إخفاء من الخريطة, widget: boolean, default: false }
+
+  - name: narrators
+    label: الرواة والحرفيون
+    label_singular: راوٍ أو حرفي
+    folder: content/narrators
+    extension: json
+    format: json
+    create: true
+    delete: true
+    slug: "person-{{uuid_shorter}}"
+    identifier_field: name
+    summary: "{{name}}"
+    fields:
+      - { name: name, label: الاسم, widget: string }
+      - { name: birthYear, label: سنة الميلاد, widget: number, value_type: int, required: false }
+      - { name: bio, label: نبذة, widget: text, required: false }
+      - { name: showName, label: نشر الاسم بموافقته, widget: boolean, default: true }
+
+  - name: glossary
+    label: قاموس الكلمات
+    label_singular: كلمة
+    folder: content/glossary
+    extension: json
+    format: json
+    create: true
+    delete: true
+    slug: "term-{{uuid_shorter}}"
+    identifier_field: term
+    summary: "{{term}}"
+    fields:
+      - { name: term, label: الكلمة, widget: string }
+      - { name: meaning, label: المعنى, widget: text }
+      - { name: kidsMeaning, label: معنى مبسّط للأطفال, widget: text, required: false }
+      - { name: example, label: مثال, widget: string, required: false }
+      - { name: note, label: ملاحظة أو المصدر, widget: string, required: false }
+      - { name: published, label: ظاهرة في الموقع, widget: boolean, default: true }
+
+  - name: timeline
+    label: الخط الزمني
+    label_singular: حدث
+    folder: content/timeline
+    extension: json
+    format: json
+    create: true
+    delete: true
+    slug: "event-{{uuid_shorter}}"
+    identifier_field: title
+    summary: "{{year}} — {{title}}"
+    fields:
+      - { name: year, label: السنة, widget: number, value_type: int }
+      - { name: title, label: العنوان, widget: string }
+      - { name: description, label: الوصف, widget: text }
+      - { name: item, label: مادة مرتبطة, widget: relation, collection: items, value_field: "{{slug}}", search_fields: [title], display_fields: [title], required: false }
+      - { name: published, label: ظاهر, widget: boolean, default: true }
+
+  - name: sections
+    label: الأقسام
+    label_singular: قسم
+    folder: content/sections
+    extension: json
+    format: json
+    create: true
+    delete: true
+    slug: "section-{{uuid_shorter}}"
+    identifier_field: title
+    summary: "{{title}}"
+    fields:
+      - { name: title, label: العنوان, widget: string }
+      - { name: description, label: الوصف, widget: text }
+      - { name: kidsTitle, label: عنوان للأطفال, widget: string, required: false }
+      - { name: kidsDescription, label: وصف للأطفال, widget: text, required: false }
+      - name: icon
+        label: الأيقونة
+        widget: select
+        default: star
+        options: [anchor, hammer, camera, music, home, compass, user, star, book, pin]
+      - name: art
+        label: الرسمة
+        widget: select
+        default: souq
+        options:
+          - { label: سفينة وبحر, value: dhow }
+          - { label: سوق وأزقة, value: souq }
+          - { label: نسيج السدو, value: sadu }
+          - { label: بيت وبرج هواء, value: windtower }
+          - { label: قلعة, value: fort }
+          - { label: محارة ولؤلؤة, value: pearl }
+          - { label: صقر, value: falcon }
+          - { label: عرضة, value: arda }
+          - { label: مخيم وصحراء, value: camp }
+          - { label: مجلس ودلّة, value: majlis }
+      - { name: sortOrder, label: الترتيب, widget: number, value_type: int, default: 0 }
+      - { name: published, label: ظاهر في الموقع, widget: boolean, default: true }
+
+  - name: collections
+    label: المجموعات
+    label_singular: مجموعة
+    folder: content/collections
+    extension: json
+    format: json
+    create: true
+    delete: true
+    slug: "collection-{{uuid_shorter}}"
+    identifier_field: title
+    summary: "{{title}}"
+    fields:
+      - { name: title, label: العنوان, widget: string }
+      - { name: description, label: الوصف, widget: text }
+      - { name: kidsSafe, label: مناسبة للأطفال, widget: boolean, default: false }
+      - name: art
+        label: الرسمة
+        widget: select
+        default: dhow
+        options:
+          - { label: سفينة وبحر, value: dhow }
+          - { label: سوق وأزقة, value: souq }
+          - { label: نسيج السدو, value: sadu }
+          - { label: بيت وبرج هواء, value: windtower }
+          - { label: قلعة, value: fort }
+          - { label: محارة ولؤلؤة, value: pearl }
+          - { label: صقر, value: falcon }
+          - { label: عرضة, value: arda }
+          - { label: مخيم وصحراء, value: camp }
+          - { label: مجلس ودلّة, value: majlis }
+      - { name: items, label: المواد (بالترتيب), widget: relation, collection: items, value_field: "{{slug}}", search_fields: [title], display_fields: [title], multiple: true }
+      - { name: published, label: ظاهرة, widget: boolean, default: true }
+
+  - name: tags
+    label: الوسوم
+    label_singular: وسم
+    folder: content/tags
+    extension: json
+    format: json
+    create: true
+    delete: true
+    slug: "tag-{{uuid_shorter}}"
+    identifier_field: name
+    summary: "{{name}}"
+    fields:
+      - { name: name, label: الوسم, widget: string }
+
+  - name: resources
+    label: أنشطة للمعلم
+    label_singular: نشاط
+    folder: content/resources
+    extension: json
+    format: json
+    create: true
+    delete: true
+    slug: "activity-{{uuid_shorter}}"
+    identifier_field: title
+    summary: "{{title}}"
+    fields:
+      - { name: title, label: العنوان, widget: string }
+      - { name: description, label: وصف قصير, widget: text }
+      - name: kind
+        label: النوع
+        widget: select
+        default: ACTIVITY
+        options:
+          - { label: نشاط, value: ACTIVITY }
+          - { label: ورقة عمل, value: WORKSHEET }
+          - { label: درس, value: LESSON }
+      - name: gradeBand
+        label: المرحلة
+        widget: select
+        default: ALL
+        options:
+          - { label: ابتدائي, value: PRIMARY }
+          - { label: إعدادي, value: PREP }
+          - { label: ثانوي, value: SECONDARY }
+          - { label: كل المراحل, value: ALL }
+      - { name: body, label: الخطوات, widget: text }
+      - { name: published, label: ظاهر, widget: boolean, default: true }
+
+  - name: settings
+    label: إعدادات المدرسة
+    files:
+      - name: school
+        label: اسم المدرسة ونص «من نحن»
+        file: content/settings.json
+        format: json
+        fields:
+          - { name: schoolName, label: اسم المدرسة, widget: string, required: false }
+          - { name: aboutText, label: "نص «من نحن» (افصل الفقرات بسطر فارغ)", widget: text, required: false }
+          - { name: contactEmail, label: بريد التواصل, widget: string, required: false }
